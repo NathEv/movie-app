@@ -1,122 +1,52 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { movies as initialMovies } from "./data/movies.js"; // « as » : renommé à l'import
+import Panel from "./components/Panel.jsx";
+import SearchBar from "./components/SearchBar.jsx";
+import MovieList from "./components/MovieList.jsx";
+import AddMovieForm from "./components/AddMovieForm.jsx";
 
-function App() {
-  const [count, setCount] = useState(0)
+// Jusqu'à l'application 6, tout le state vit dans App : c'est le parent commun
+// de la recherche, du compteur, de la grille et du formulaire (4.6).
+export default function App() {
+  const [movies, setMovies] = useState(initialMovies);
+  const [likedIds, setLikedIds] = useState([]);
+  const [query, setQuery] = useState("");
+
+  function toggleLike(id) {
+    setLikedIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  }
+
+  // 4.5 : nouveau tableau, jamais de push
+  function addMovie(movie) {
+    setMovies((list) => [...list, movie]);
+  }
+
+  // 4.7 et 5.2 : données dérivées, recalculées à chaque rendu
+  const q = query.trim().toLowerCase();
+  const visible = movies.filter((m) => m.title.toLowerCase().includes(q));
+  const likedCount = likedIds.length;
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+      <Panel title="Catalogue">
+        <div className="toolbar">
+          <SearchBar value={query} onChange={setQuery} />
+          <span>
+            {likedCount} film{likedCount > 1 ? "s" : ""} aimé{likedCount > 1 ? "s" : ""}
+          </span>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+        {/* 5.1 : length > 0, pas length seul (sinon 0 s'affiche) */}
+        {visible.length > 0 ? (
+          <MovieList movies={visible} likedIds={likedIds} onToggleLike={toggleLike} />
+        ) : (
+          <p className="empty">Aucun film ne correspond à « {query} »</p>
+        )}
+      </Panel>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      <Panel title="Ajouter un film">
+        <AddMovieForm onAdd={addMovie} />
+      </Panel>
     </>
-  )
+  );
 }
-
-export default App
